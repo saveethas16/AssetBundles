@@ -34,7 +34,7 @@ targets:
     default: true
     workspace:
       host: https://dbc-9b94c6fd-88eb.cloud.databricks.com
-      root_path: /Workspace/bundles/${bundle.name}/${bundle.target}
+      root_path: ~/bundles/${bundle.name}/${bundle.target}
     variables:
       catalog: dev_dabs
       bronze_schema: bronze
@@ -52,7 +52,7 @@ targets:
     mode: production
     workspace:
       host: https://dbc-608d8ada-4b50.cloud.databricks.com
-      root_path: /Workspace/bundles/${bundle.name}/${bundle.target}
+      root_path: ~/bundles/${bundle.name}/${bundle.target}
     variables:
       catalog: prod_dabs
       bronze_schema: bronze

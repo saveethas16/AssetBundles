@@ -46,11 +46,12 @@ resources:
       #              (trigger manually from Databricks UI to avoid unintended runs)
       #
       # ← CHANGE: update timezone_id or time to match your requirements
+      pause_status: UNPAUSED
+
       trigger:
         cron:
-          quartz_cron_expression: "0 0 10 * * ?"
+          quartz_cron_schedule: "0 0 10 * * ?"
           timezone_id: "Asia/Kolkata"        # ← CHANGE: your timezone
-          pause_status: UNPAUSED             # ← CHANGE: PAUSED for non-prod envs
 
       # ── Notebook libraries ────────────────────────────────────────────────
       # Add one entry per DLT notebook. Order matters for dependency resolution
