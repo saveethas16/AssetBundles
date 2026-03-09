@@ -1,0 +1,41 @@
+# ============================================================
+# _run-tests.yml  —  REUSABLE  |  DO NOT MODIFY PER PROJECT
+# ============================================================
+# Called by _deploy.yml. Runs pytest against tests/ folder.
+# Only change this file if you upgrade PySpark or Delta versions.
+# ============================================================
+
+name: Run Unit Tests
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: "11"
+          distribution: "temurin"
+
+      - name: Install dependencies
+        run: |
+          pip install pytest pyspark==3.5.0 delta-spark==3.0.0
+
+      - name: Run tests
+        env:
+          PYSPARK_SUBMIT_ARGS: "--packages io.delta:delta-spark_2.12:3.0.0 pyspark-shell"
+        run: |
+          pytest tests/ -v --tb=short

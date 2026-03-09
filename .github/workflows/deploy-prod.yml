@@ -1,0 +1,31 @@
+# ============================================================
+# deploy-prod.yml  —  PROJECT-SPECIFIC  |  MODIFY AS NEEDED
+# ============================================================
+# Triggers on push to `main` (production gate).
+# Key difference from other envs: run_job: true triggers the
+# job immediately after a successful deploy.
+#
+# To customise for your project:
+#   - Change `job_name` if your job resource key differs from
+#     the default "medallion_daily_job" in _deploy.yml
+#   - Set run_job: false if you prefer the schedule to trigger it
+#   - Add GitHub Secrets: PROD_DATABRICKS_HOST, PROD_DATABRICKS_TOKEN
+#     (use a Service Principal token for prod, not a personal token)
+# ============================================================
+
+name: Deploy to Prod
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      target: prod
+      profile: PROD
+    secrets:
+      DATABRICKS_HOST: ${{ secrets.PROD_DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.PROD_DATABRICKS_TOKEN }}

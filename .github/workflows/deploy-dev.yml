@@ -1,0 +1,29 @@
+# ============================================================
+# deploy-dev.yml  —  PROJECT-SPECIFIC  |  MODIFY AS NEEDED
+# ============================================================
+# Triggers on push to the `dev` branch.
+# Passes dev-specific values into the reusable _deploy.yml engine.
+#
+# To customise for your project:
+#   - Change `branches` if your branch naming differs
+#   - Change `target` to match your target name in databricks.yml
+#   - Change `profile` to any name you prefer (must match secrets below)
+#   - Add GitHub Secrets: DEV_DATABRICKS_HOST, DEV_DATABRICKS_TOKEN
+# ============================================================
+
+name: Deploy to Dev
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      target: dev
+      profile: DEV
+    secrets:
+      DATABRICKS_HOST: ${{ secrets.DEV_DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DEV_DATABRICKS_TOKEN }}
