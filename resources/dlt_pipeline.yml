@@ -20,6 +20,7 @@ resources:
   pipelines:
     orders_dlt_pipeline:                        # ← CHANGE: unique pipeline key
       name: ${var.dlt_pipeline_name}
+      allow_duplicate_names: true
 
       # catalog + target control where DLT registers tables in Unity Catalog.
       # target is the DEFAULT schema for tables that don't specify a
@@ -46,7 +47,7 @@ resources:
       #              (trigger manually from Databricks UI to avoid unintended runs)
       #
       # ← CHANGE: update timezone_id or time to match your requirements
-      pause_status: UNPAUSED
+     
 
       trigger:
         cron:
