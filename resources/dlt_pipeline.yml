@@ -49,10 +49,7 @@ resources:
       # ← CHANGE: update timezone_id or time to match your requirements
      
 
-      trigger:
-        cron:
-          quartz_cron_schedule: "0 0 10 * * ?"
-          timezone_id: "Asia/Kolkata"        # ← CHANGE: your timezone
+
 
       # ── Notebook libraries ────────────────────────────────────────────────
       # Add one entry per DLT notebook. Order matters for dependency resolution
