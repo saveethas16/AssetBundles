@@ -1,0 +1,84 @@
+# ============================================================
+# _deploy.yml  —  REUSABLE  |  DO NOT MODIFY PER PROJECT
+# ============================================================
+# The deploy engine. Called by every environment caller file.
+# Accepts environment-specific inputs and secrets from callers.
+#
+# Inputs:
+#   target  — Databricks bundle target (must match databricks.yml)
+#   profile — Databricks CLI profile name written to ~/.databrickscfg
+#
+# Secrets (passed in from caller):
+#   DATABRICKS_HOST  — Workspace URL for the target environment
+#   DATABRICKS_TOKEN — PAT or service principal token
+#
+# Jobs are NOT triggered here. They run on the schedule defined
+# in resources/job.yml (quartz_cron_expression).
+#
+# Only change this file if the deploy process itself changes
+# (e.g. CLI version bump, new bundle flags, org-wide new step).
+# ============================================================
+
+name: Deploy Bundle
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        description: "Databricks bundle target (dev | staging | uat | prod)"
+        required: true
+        type: string
+      profile:
+        description: "Databricks CLI profile name"
+        required: true
+        type: string
+    secrets:
+      DATABRICKS_HOST:
+        required: true
+      DATABRICKS_TOKEN:
+        required: true
+
+jobs:
+  # ── Step 1: Run tests before any deploy ──────────────────────────────────
+  test:
+    name: Run Unit Tests
+    uses: ./.github/workflows/_run-tests.yml
+
+  # ── Step 2: Deploy to target workspace ───────────────────────────────────
+  deploy:
+    name: Deploy to ${{ inputs.target }}
+    runs-on: ubuntu-latest
+    needs: test                        # blocked if tests fail
+    environment: ${{ inputs.target }}  # maps to GitHub Environment for protection rules
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Databricks CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+
+      # Writes workspace credentials to ~/.databrickscfg
+      # Secrets are injected by GitHub at runtime — never stored in code
+      - name: Configure Databricks CLI
+        run: |
+          cat <<EOF > ~/.databrickscfg
+          [${{ inputs.profile }}]
+          host  = ${{ secrets.DATABRICKS_HOST }}
+          token = ${{ secrets.DATABRICKS_TOKEN }}
+          EOF
+
+      # Validates YAML, variable resolution, notebook paths — no workspace changes
+      - name: Validate Bundle
+        run: |
+          databricks bundle validate \
+            --target ${{ inputs.target }} \
+            --profile ${{ inputs.profile }}
+
+      # Uploads notebooks, creates/updates job and DLT pipeline in workspace
+      - name: Deploy Bundle
+        run: |
+          databricks bundle deploy \
+            --target ${{ inputs.target }} \
+            --profile ${{ inputs.profile }}

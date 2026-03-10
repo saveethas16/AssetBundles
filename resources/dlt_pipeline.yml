@@ -1,0 +1,82 @@
+# ============================================================
+# resources/dlt_pipeline.yml  —  PROJECT-SPECIFIC  |  MODIFY AS NEEDED
+# ============================================================
+#
+# WHAT TO CHANGE FOR YOUR PROJECT:
+#   1. pipelines key name  — any unique identifier for this pipeline
+#   2. libraries           — replace notebook paths with your DLT notebooks
+#                            add or remove notebooks to match your pipeline
+#   3. trigger.cron        — update timezone or time if needed
+#   4. pause_status        — set PAUSED for dev/staging/uat, UNPAUSED for prod
+#
+# WHAT TO LEAVE ALONE:
+#   - Variable references ${var.x}
+#   - configuration block  — all spark.conf.get() calls in notebooks
+#                            resolve from here, keep all keys present
+#   - catalog / target     — set by variables, do not hardcode
+# ============================================================
+
+resources:
+  pipelines:
+    orders_dlt_pipeline:                        # ← CHANGE: unique pipeline key
+      name: ${var.dlt_pipeline_name}
+      allow_duplicate_names: true
+
+      # catalog + target control where DLT registers tables in Unity Catalog.
+      # target is the DEFAULT schema for tables that don't specify a
+      # fully-qualified name. Since all notebooks use fully-qualified names
+      # (catalog.schema.table), this is a required fallback field only —
+      # it does not affect where your tables are actually written.
+      # dlt_bronze_schema is used as the default since it's the pipeline entry point.
+      catalog: ${var.catalog}
+      target:  ${var.dlt_bronze_schema}
+
+      continuous: false      # true = streaming; false = triggered (scheduled below)
+      channel:    "CURRENT"
+      serverless: true
+
+      # ── Schedule ──────────────────────────────────────────────────────────
+      # Runs daily at 10:00 AM IST. Only active when continuous: false.
+      #
+      # Quartz cron format: "seconds minutes hours day month weekday"
+      #   "0 0 10 * * ?"  = every day at 10:00 AM
+      #
+      # pause_status:
+      #   UNPAUSED = schedule is live     → use for prod
+      #   PAUSED   = schedule is inactive → use for dev/staging/uat
+      #              (trigger manually from Databricks UI to avoid unintended runs)
+      #
+      # ← CHANGE: update timezone_id or time to match your requirements
+     
+
+
+
+      # ── Notebook libraries ────────────────────────────────────────────────
+      # Add one entry per DLT notebook. Order matters for dependency resolution
+      # within the pipeline — list bronze before silver before gold.
+      libraries:
+        - notebook:
+            path: ../src/notebooks/dlt/bronze_orders_dlt.py      # ← CHANGE path
+        - notebook:
+            path: ../src/notebooks/dlt/silver_orders_dlt.py      # ← CHANGE path
+        - notebook:
+            path: ../src/notebooks/dlt/gold/dim_customer_dlt.py  # ← CHANGE path
+        - notebook:
+            path: ../src/notebooks/dlt/gold/dim_date_dlt.py      # ← CHANGE path
+        - notebook:
+            path: ../src/notebooks/dlt/gold/dim_product_dlt.py   # ← CHANGE path
+        - notebook:
+            path: ../src/notebooks/dlt/gold/fact_sales_dlt.py    # ← CHANGE path
+
+      # ── Pipeline configuration ───────────────────────────────────────────
+      # All spark.conf.get("key") calls in DLT notebooks resolve from here.
+      # Keep all keys present — only values change (via variables per target).
+      # Add new keys here if your notebooks call spark.conf.get() for them.
+      configuration:
+        catalog:           ${var.catalog}
+        volume_schema:     ${var.volume_schema}
+        volume_name:       ${var.volume_name}
+        file_name:         ${var.file_name}
+        dlt_bronze_schema: ${var.dlt_bronze_schema}
+        dlt_silver_schema: ${var.dlt_silver_schema}
+        dlt_gold_schema:   ${var.dlt_gold_schema}
