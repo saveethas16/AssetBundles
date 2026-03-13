@@ -69,7 +69,4 @@ resources:
               catalog:  "${var.catalog}"
               silver_schema: "${var.silver_schema}"
             source: WORKSPACE
-      queue:
-        enabled: true
-      run_as:
-        user_name: saveethas16@gmail.com
+
