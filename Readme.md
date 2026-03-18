@@ -131,6 +131,5 @@ pytest tests/ -v --tb=short
 
 ```bash
 databricks bundle validate                    # dev (default)
-databricks bundle validate --target staging
 databricks bundle validate --target prod
 ```
